@@ -108,6 +108,7 @@ import com.example.ui.components.ElevationProfileChart
 import com.example.ui.dialogs.AddWaypointDialog
 import com.example.ui.dialogs.GpxViewerDialog
 import com.example.ui.dialogs.SaveTrekSummaryDialog
+import com.example.ui.map.OsmMapView
 import com.example.ui.map.TrailMapCanvas
 import com.example.ui.photos.TrekPhotoSection
 import com.example.ui.theme.ArolockTheme
@@ -170,6 +171,7 @@ fun ArolockHomeScreen(modifier: Modifier = Modifier) {
   var showAddWaypointDialog by remember { mutableStateOf(false) }
   var viewingGpxTrek by remember { mutableStateOf<TrekEntity?>(null) }
   val activeTrekPhotos = remember { mutableStateListOf<String>() }
+  var useOsmStreetMaps by remember { mutableStateOf(true) }
 
   // User weight for calories calculation
   val userWeightKg = 70.0
@@ -467,23 +469,90 @@ fun ArolockHomeScreen(modifier: Modifier = Modifier) {
       }
     }
 
-    // Interactive Outdoor Trail Map Visualizer with Waypoint Pins
+    // Map Engine Header & Mode Switcher
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+          imageVector = Icons.Default.Explore,
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.primary,
+          modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+          text = if (useOsmStreetMaps) "Live OpenStreetMap" else "Offline Trail Canvas",
+          style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+          color = MaterialTheme.colorScheme.onSurface
+        )
+      }
+
+      Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant
+      ) {
+        Row(modifier = Modifier.padding(2.dp)) {
+          FilterChip(
+            selected = useOsmStreetMaps,
+            onClick = { useOsmStreetMaps = true },
+            label = { Text("Map", style = MaterialTheme.typography.labelSmall) },
+            leadingIcon = {
+              Icon(
+                imageVector = Icons.Default.Map,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp)
+              )
+            },
+            shape = RoundedCornerShape(10.dp)
+          )
+          Spacer(modifier = Modifier.width(4.dp))
+          FilterChip(
+            selected = !useOsmStreetMaps,
+            onClick = { useOsmStreetMaps = false },
+            label = { Text("Grid", style = MaterialTheme.typography.labelSmall) },
+            leadingIcon = {
+              Icon(
+                imageVector = Icons.Default.Landscape,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp)
+              )
+            },
+            shape = RoundedCornerShape(10.dp)
+          )
+        }
+      }
+    }
+
+    // Interactive Outdoor Trail Map Visualizer with Real World Maps + Waypoint Pins
     Card(
       shape = RoundedCornerShape(24.dp),
       colors = CardDefaults.cardColors(containerColor = Color(0xFF131D18)),
       elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
       modifier = Modifier
         .fillMaxWidth()
-        .height(300.dp)
+        .height(340.dp)
         .testTag("interactive_trail_map")
     ) {
-      TrailMapCanvas(
-        routePoints = recordedPoints,
-        currentLocation = currentPoint,
-        waypoints = markedWaypoints,
-        isRecording = isTrackingActive && !isTrackingPaused,
-        modifier = Modifier.fillMaxSize()
-      )
+      if (useOsmStreetMaps) {
+        OsmMapView(
+          routePoints = recordedPoints,
+          currentLocation = currentPoint,
+          waypoints = markedWaypoints,
+          isRecording = isTrackingActive && !isTrackingPaused,
+          modifier = Modifier.fillMaxSize()
+        )
+      } else {
+        TrailMapCanvas(
+          routePoints = recordedPoints,
+          currentLocation = currentPoint,
+          waypoints = markedWaypoints,
+          isRecording = isTrackingActive && !isTrackingPaused,
+          modifier = Modifier.fillMaxSize()
+        )
+      }
     }
 
     // Simulation / Map Control Strip + Add Waypoint Action
