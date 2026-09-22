@@ -1,0 +1,7 @@
+{
+  "name": "arolock",
+  "description": "A modern trekking, hiking and trail-recording application to track GPS routes, elevation gain, calories, and outdoor adventures.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
